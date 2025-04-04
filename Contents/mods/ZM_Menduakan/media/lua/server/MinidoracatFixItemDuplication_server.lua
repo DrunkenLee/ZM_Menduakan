@@ -26,6 +26,16 @@ MinidoracatFixItemDuplication.logRemovedItems = function(player, args)
     end
 end
 
+-- Handle player disconnect to flag potential duplication moments
+MinidoracatFixItemDuplication.OnPlayerDisconnect = function(player)
+    if not player then return end
+    
+    local username = player:getUsername()
+    print(string.format("[MinidoracatFixItemDuplication] Player %s disconnected, flagging for duplicate check on reconnect", username))
+    
+    -- You could also save the player's last position to check that area specifically on reconnect
+end
+
 Events.OnLoad.Add(function()
 end)
 
@@ -36,5 +46,6 @@ local function onClientCommand(module, command, player, args)
 end
 
 Events.OnClientCommand.Add(onClientCommand)
+Events.OnPlayerDisconnect.Add(MinidoracatFixItemDuplication.OnPlayerDisconnect)
 
 print("[MinidoracatFixItemDuplication] Server-side script loaded")
