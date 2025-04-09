@@ -13,7 +13,7 @@ end
 
 MinidoracatFixItemDuplication.canBeAdded = function(container, playerObj)
     if not container or not playerObj then return false end
-    
+
 
     if container:getType() == "inventoryfemale" or container:getType() == "inventorymale" then
         return true
@@ -84,10 +84,10 @@ MinidoracatFixItemDuplication.checkAndRemoveDuplicateItems = function(playerObj)
                     end
                 end
             end
-            
+
             for _, item in ipairs(itemsToRemove) do
                 if MinidoracatFixItemDuplication.removeDuplicateItem(item) then
-                    print(string.format("[MinidoracatFixItemDuplication] Removed duplicate item: %s (ID: %s, Type: %s) from container %d", 
+                    print(string.format("[MinidoracatFixItemDuplication] Removed duplicate item: %s (ID: %s, Type: %s) from container %d",
                         item:getName(), tostring(item:getID()), item:getType(), index))
                     table.insert(removedItems, {
                         name = item:getName(),
@@ -130,7 +130,7 @@ MinidoracatFixItemDuplication.OnRefreshInventoryWindowContainers = function(inve
                 end
             end
         end
-        
+
         if containersChanged then
             MinidoracatFixItemDuplication.checkAndRemoveDuplicateItems(playerObj)
             MinidoracatFixItemDuplication.containersUpdated = true
@@ -140,6 +140,20 @@ end
 
 MinidoracatFixItemDuplication.OnPlayerConnect = function(playerObj)
     MinidoracatFixItemDuplication.checkAndRemoveDuplicateItems(playerObj)
+end
+
+MinidoracatFixItemDuplication.OnActionPerformed = function(character, action)
+  if not character or not action then return end
+
+  -- Check if this is an inventory-related action
+  local actionType = action:getType()
+  if actionType == "Take" or actionType == "AddItemInInventory" or
+     actionType == "TransferItemAction" or actionType == "MoveToInventory" then
+      -- Short delay to allow the inventory to update first
+      TimerManager.instance:add(MinidoracatFixItemDuplication.OnActionPerformed, 10, function()
+          MinidoracatFixItemDuplication.checkAndRemoveDuplicateItems(character)
+      end)
+  end
 end
 
 local function safeAddEvent(event, func)
@@ -159,5 +173,9 @@ safeRemoveEvent(Events.OnPlayerConnect, MinidoracatFixItemDuplication.OnPlayerCo
 
 safeAddEvent(Events.OnRefreshInventoryWindowContainers, MinidoracatFixItemDuplication.OnRefreshInventoryWindowContainers)
 safeAddEvent(Events.OnPlayerConnect, MinidoracatFixItemDuplication.OnPlayerConnect)
+
+if EventsPlus then
+  EventsPlus:Add("OnActionPerformed", MinidoracatFixItemDuplication.OnActionPerformed, "MinidoracatFixItemDuplication")
+end
 
 print("[MinidoracatFixItemDuplication] Client-side script loaded")
