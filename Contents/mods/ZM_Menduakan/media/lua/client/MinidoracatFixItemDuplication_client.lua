@@ -156,6 +156,16 @@ MinidoracatFixItemDuplication.OnActionPerformed = function(character, action)
   end
 end
 
+MinidoracatFixItemDuplication.OnCreatePlayer = function(playerNum, player)
+  -- Only check for the local player
+  if player and getSpecificPlayer(playerNum) == getPlayer() then
+      -- Short delay to ensure inventory is fully loaded
+      TimerManager.instance:add(MinidoracatFixItemDuplication.OnCreatePlayer, 200, function()
+          MinidoracatFixItemDuplication.checkAndRemoveDuplicateItems(player)
+      end)
+  end
+end
+
 local function safeAddEvent(event, func)
     if event then
         event.Add(func)
@@ -170,9 +180,11 @@ end
 
 safeRemoveEvent(Events.OnRefreshInventoryWindowContainers, MinidoracatFixItemDuplication.OnRefreshInventoryWindowContainers)
 safeRemoveEvent(Events.OnPlayerConnect, MinidoracatFixItemDuplication.OnPlayerConnect)
+safeRemoveEvent(Events.OnCreatePlayer, MinidoracatFixItemDuplication.OnCreatePlayer)
 
 safeAddEvent(Events.OnRefreshInventoryWindowContainers, MinidoracatFixItemDuplication.OnRefreshInventoryWindowContainers)
 safeAddEvent(Events.OnPlayerConnect, MinidoracatFixItemDuplication.OnPlayerConnect)
+safeAddEvent(Events.OnCreatePlayer, MinidoracatFixItemDuplication.OnCreatePlayer)
 
 if EventsPlus then
   EventsPlus:Add("OnActionPerformed", MinidoracatFixItemDuplication.OnActionPerformed, "MinidoracatFixItemDuplication")
